@@ -1,0 +1,54 @@
+{
+    "init": {
+        "flags": 6,
+        "iface": 0,
+        "hostname": "krax",
+        "rate": 12
+    },
+    "node_id": 1,
+    "ap": {
+        "enabled": true,
+        "mask": "255.255.255.0",
+        "gw": "192.168.4.1",
+        "pass": "",
+        "ipv4": "192.168.4.1",
+        "static": false
+    },
+    "devs": [
+        "KRAX AI-455",
+        "KRAX AI-455",
+        "KRAX DO-530",
+        "KRAX DO-530",
+        "KRAX DO-530",
+        "KRAX DI-430",
+        "KRAX DI-430",
+        "KRAX DI-430"
+    ],
+    "sta": {
+        "enabled": true,
+        "mask": "0.0.0.0",
+        "gw": "0.0.0.0",
+        "pass": "",
+        "essid": "",
+        "ipv4": "0.0.0.0",
+        "static": false
+    },
+    "layout": [
+        "24:62:ab:ce:90:90",
+        "24:62:ab:ce:fd:40",
+        "24:62:ab:ce:90:e0",
+        "24:d7:eb:10:eb:b8",
+        "24:d7:eb:10:e9:78",
+        "24:d7:eb:10:79:38",
+        "24:d7:eb:10:53:a4",
+        "24:d7:eb:10:51:d8"
+    ],
+    "eth": {
+        "ipv4": "192.168.2.10",
+        "mask": "255.255.255.0",
+        "gw": "192.168.2.1",
+        "static": true,
+        "enabled": true
+    },
+    "via" : "127.0.0.1"
+}

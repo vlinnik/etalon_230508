@@ -1,0 +1,12 @@
+{
+  "paths": {
+    "root": "src"
+  },
+  "tools": {
+    "upydev": "",
+    "miniterm": "",
+    "web_repl": ""
+  },
+  "target": "192.168.2.10",
+  "is_serial": false
+}
