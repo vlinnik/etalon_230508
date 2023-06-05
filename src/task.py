@@ -16,7 +16,7 @@ from concrete import Dosator, Container, Weight, MSGate, Motor, Mixer, Transport
 from concrete.vibrator import Vibrator,UnloadHelper
 from heartbeat import HeartBeat
 from concrete.imitation import *
-from pyplc.utils.trig import TRIG
+from pyplc.utils.trig import TRANS
 
 print('Starting up PYPLC-230508 project!')
 plc, hw = kx_init()
@@ -28,20 +28,20 @@ heartbeat_1 = HeartBeat(q=plc.HEARTBEAT)
 # дозатор цемента с 1 шнеком
 cement_m_1 = Weight(mmax=1500, raw=plc.CEMENT_M_1, id='cement_m_1')
 silage_1 = Container(m=lambda: cement_m_1.m, out=plc.AUGER_ON_1, closed=~
-                     plc.AUGER_ON_1, lock=Lock(key=~plc.DCEMENT_CLOSED_1), id='silage_1')
+                     plc.AUGER_ON_1, lock=Lock(key=~plc.DCEMENT_CLOSED_1), max_sp = 500, id='silage_1')
 dcement_1 = Dosator(m=lambda: cement_m_1.m, closed=plc.DCEMENT_CLOSED_1, out=plc.DCEMENT_OPEN_1,
                     containers=[silage_1], fast=cement_m_1.mode, lock=Lock(key=lambda: hw.AUGER_ON_1 or not hw.MIXER_ISON_1), unloadT=3, id='cement_1')
 
 # дозатор воды
 water_m_1 = Weight(mmax=500, raw=plc.WATER_M_1, id='water_m_1')
-water_1 = Container(m=lambda: water_m_1.m, out=plc.WATER_OPEN_1, closed=~
+water_1 = Container(m=lambda: water_m_1.m, out=plc.WATER_OPEN_1, max_sp = 500, closed=~
                     plc.WATER_OPEN_1, lock=Lock(key=~plc.DWATER_CLOSED_1), id='water_1')
 dwater_1 = Dosator(m=lambda: water_m_1.m, closed=plc.DWATER_CLOSED_1, out=plc.DWATER_OPEN_1,
                    containers=[water_1], lock=Lock(key=plc.WATER_OPEN_1), unloadT=3, fast=water_m_1.mode, id='dwater_1')
 
 # дозатор хд
 additions_m_1 = Weight(mmax=250, raw=plc.ADDITIONS_M_1, id='additions_m_1')
-addition_1 = Container(m=lambda: additions_m_1.m, out=plc.APUMP_ON_1, closed=~
+addition_1 = Container(m=lambda: additions_m_1.m, out=plc.APUMP_ON_1, max_sp = 15, closed=~
                        plc.APUMP_ON_1, lock=~plc.DADDITIONS_CLOSED_1,  id='addition_1')
 dadditions_1 = Dosator(m=lambda: additions_m_1.m, closed=plc.DADDITIONS_CLOSED_1, out=plc.DADDITIONS_OPEN_1,
                        containers=[addition_1], unloadT=0, fast=additions_m_1.mode, lock=Lock(key=plc.APUMP_ON_1), id='daddition_1')
@@ -54,11 +54,11 @@ accel_1 = Accelerator(outs=[plc.FILLER_OPEN_1, plc.FILLER_OPEN_2], sts=[
 accel_2 = Accelerator(outs=[plc.FILLER_OPEN_3, plc.FILLER_OPEN_4], sts=[
                       plc.FILLER_CLOSED_3, plc.FILLER_CLOSED_4])
 filler_1 = Container(m=lambda: fillers_m_1.m, lock=Lock(key=lambda: hw.CONVEYOR_ISON_1 or not accel_2.closed),
-                     closed=lambda: accel_1.closed, id='filler_1')
+                     closed=lambda: accel_1.closed, max_sp = 1000, id='filler_1')
 accel_1.link(filler_1)
 
 filler_2 = Container(m=lambda: fillers_m_1.m, lock=Lock(key=lambda: hw.CONVEYOR_ISON_1 or not accel_1.closed),
-                     closed=lambda: accel_2.closed, id='filler_2')
+                     closed=lambda: accel_2.closed, max_sp = 1000, id='filler_2')
 accel_2.link(filler_2)
 
 conveyor_1 = Transport(power=plc.TCONVEYOR_ON_1, ison=plc.TCONVEYOR_ISON_1,
@@ -80,7 +80,7 @@ motor_1 = Motor(powered=plc.MIXER_ON_1,
 mixer_1 = Mixer(motor=motor_1, gate=gate_1,  flows=[s.q for s in [
     silage_1, water_1, addition_1, filler_1, filler_2]], id='mixer_1')
 
-manual_unload_1 = TRIG(clk = plc.UNLOAD_ENABLED_1)
+manual_unload_1 = TRANS(clk = plc.UNLOAD_ENABLED_1,value = ~plc.UNLOAD_ENABLED_1, out = gate_1.set_lock)
 
 
 ready_1 = Readiness([mixer_1, dcement_1, dwater_1, dadditions_1])
@@ -91,7 +91,7 @@ manager_1 = Manager(collected=ready_1, loaded=loaded_1, mixer=mixer_1, dosators=
 factory_1.on_mode = [x.switch_mode for x in [silage_1, dcement_1,
                                              water_1, addition_1, filler_1, filler_2, dwater_1, dadditions_1,fillers_1]]
 factory_1.on_emergency = [x.emergency for x in [manager_1,silage_1, dcement_1, water_1,
-                                                dwater_1, addition_1, dadditions_1, filler_1, filler_2, fillers_1, mixer_1]]
+                                                dwater_1, addition_1, dadditions_1, filler_1, filler_2, fillers_1, mixer_1, gate_1]]
 
 instances = [heartbeat_1, factory_1, gate_1, motor_1, mixer_1, silage_1, dcement_1, water_1, dwater_1, addition_1, dadditions_1, filler_1, accel_1, filler_2, accel_2,
              fillers_1, vibrator_1, vibrator_2, conveyor_1, conveyor_2, cement_m_1, water_m_1, additions_m_1, fillers_m_1, manager_1,ready_1,loaded_1,df_vibrator_1,manual_unload_1]  # here should be listed user defined programs
@@ -139,7 +139,7 @@ try:
             for i in instances:
                 i()
                 
-            if manual_unload_1.q: gate_1.set_lock( not hw.UNLOAD_ENABLED_1 )
+            # if manual_unload_1.q: gate_1.set_lock( not hw.UNLOAD_ENABLED_1 )
 except KeyboardInterrupt:
     print('keyboard interrupt')
 except Exception as e:
