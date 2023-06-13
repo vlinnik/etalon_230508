@@ -7,6 +7,6 @@
     "miniterm": "",
     "web_repl": ""
   },
-  "target": "/dev/cu.usbserial-0235061C",
+  "target": "/dev/cu.usbserial-0235061F",
   "is_serial": true
 }

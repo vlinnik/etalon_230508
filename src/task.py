@@ -11,12 +11,15 @@ except Exception as e:
     pass
 gc.collect()
 
+import time
+ts = time.time_ns()
 from kx.config import *
 from concrete import Dosator, Container, Weight, MSGate, Motor, Mixer, Transport, Factory, Readiness, Loaded, Lock, Accelerator, Manager
 from concrete.vibrator import Vibrator,UnloadHelper
 from heartbeat import HeartBeat
 from concrete.imitation import *
 from pyplc.utils.trig import TRANS
+print(time.time_ns() - ts )
 
 print('Starting up PYPLC-230508 project!')
 plc, hw = kx_init()
@@ -40,7 +43,7 @@ dwater_1 = Dosator(m=lambda: water_m_1.m, closed=plc.DWATER_CLOSED_1, out=plc.DW
                    containers=[water_1], lock=Lock(key=plc.WATER_OPEN_1), unloadT=3, fast=water_m_1.mode, id='dwater_1')
 
 # дозатор хд
-additions_m_1 = Weight(mmax=250, raw=plc.ADDITIONS_M_1, id='additions_m_1')
+additions_m_1 = Weight(mmax=50, raw=plc.ADDITIONS_M_1, id='additions_m_1')
 addition_1 = Container(m=lambda: additions_m_1.m, out=plc.APUMP_ON_1, max_sp = 15, closed=~
                        plc.APUMP_ON_1, lock=~plc.DADDITIONS_CLOSED_1,  id='addition_1')
 dadditions_1 = Dosator(m=lambda: additions_m_1.m, closed=plc.DADDITIONS_CLOSED_1, out=plc.DADDITIONS_OPEN_1,
