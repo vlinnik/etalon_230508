@@ -1,29 +1,37 @@
 # This is project entry point.
 import sys
 import gc
-
-try:
-    for x in sys.modules:
-        if x.startswith('pyplc') or x.startswith('kx') or x.startswith('misc') or x.startswith('concrete'):
-            sys.modules.pop(x)
-except Exception as e:
-    print(e)
-    pass
-gc.collect()
-
 import time
+
 ts = time.time_ns()
+enter_ts = ts
+def progress(msg):
+    global ts
+    print(msg,(time.time_ns() - ts)/1000000 )
+    ts = time.time_ns( )
+
+# try:
+#     for x in sys.modules:
+#         if x.startswith('pyplc') or x.startswith('kx') or x.startswith('misc') or x.startswith('concrete'):
+#             sys.modules.pop(x)
+# except Exception as e:
+#     print(e)
+#     pass
+# gc.collect()
+progress('cleanup/reload complete')
+
 from kx.config import *
+progress('KX config loaded')
 from concrete import Dosator, Container, Weight, MSGate, Motor, Mixer, Transport, Factory, Readiness, Loaded, Lock, Accelerator, Manager
 from concrete.vibrator import Vibrator,UnloadHelper
 from heartbeat import HeartBeat
 from concrete.imitation import *
 from pyplc.utils.trig import TRANS
-print(time.time_ns() - ts )
+progress('CONCRETE loaded')
 
 print('Starting up PYPLC-230508 project!')
 plc, hw = kx_init()
-
+progress('CONF loaded')
 
 factory_1 = Factory(id='factory_1')
 heartbeat_1 = HeartBeat(q=plc.HEARTBEAT)
@@ -134,6 +142,8 @@ instances = [heartbeat_1, factory_1, gate_1, motor_1, mixer_1, silage_1, dcement
 #               ifiller_2, ifiller_3, ifiller_4, icement_m_1, iwater_m_1, iadditions_m_1, ifillers_m_1, imotor_1, itconveyor_1, iconveyor_1]
 
 plc.config(ctx=globals(),persist=board.eeprom)
+
+print('Startup time is',(time.time_ns() - enter_ts)/1000000)
 
 try:
     while True:

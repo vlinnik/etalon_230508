@@ -1,5 +1,4 @@
 from machine import Pin
-from kx.config import kx_init,kx_term
 import webrepl 
 
 usr = Pin(36,Pin.IN)
@@ -10,6 +9,7 @@ if run.value()==0:
     try:
         import task
     except Exception as e:
+        from kx.config import kx_init,kx_term
         print('KRAX.MAIN: Exception in TASK. SafeMode!',e)
         kx_term( )
         plc,hw = kx_init(passive)
@@ -18,6 +18,7 @@ else:
         print('KRAX.MAIN: USR is ON. Passive mode')
         import passive
     else:
+        from kx.config import kx_init
         print('KRAX.MAIN: RUN switch is OFF. Welcome to REPL console!')
         plc,hw = kx_init( passive = True )
 
