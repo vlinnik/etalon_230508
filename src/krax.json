@@ -1,13 +1,13 @@
 {
     "layout": [
-        "b4:8a:0a:8f:1c:94",
-        "b4:8a:0a:8f:17:4c",
-        "b4:8a:0a:8f:1b:80",
-        "b4:8a:0a:8f:1b:e0",
-        "b4:8a:0a:8f:19:98",
-        "b4:8a:0a:8f:19:b4",
-        "b4:8a:0a:8f:10:e0",
-        "b4:8a:0a:8f:1a:ac"
+        "b4:8a:0a:8e:fc:f8",
+        "24:d7:eb:10:53:a0",
+        "24:d7:eb:10:51:c8",
+        "24:d7:eb:10:51:dc",
+        "24:d7:eb:10:e5:0c",
+        "24:d7:eb:10:6d:64",
+        "24:d7:eb:10:dc:e4",
+        "24:d7:eb:10:79:a0"
     ],
     "devs": [
         "KRAX AI-455",
@@ -50,15 +50,16 @@
         "mask": "255.255.255.0",
         "gw": "192.168.4.1",
         "pass": "",
-        "essid": "ESP_767C85",
+        "essid": "ESP_7680A1",
         "ipv4": "192.168.4.1",
         "static": false
     },
     "init": {
-        "flags": 6,
+        "flags": 0,
         "iface": 0,
         "hostname": "krax",
         "rate": 12
     },
-    "node_id": 1
+    "node_id": 1,
+    "scanTime":100
 }
