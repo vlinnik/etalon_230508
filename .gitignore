@@ -2,3 +2,4 @@ __pycache__
 persist.dat
 persist.json
 *.mpy
+._*

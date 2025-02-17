@@ -1,16 +1,15 @@
 from pyplc.sfc import *
-@sfc(outputs=['q'])
 class HeartBeat(SFC):
-    def __init__(self):
-        self.q = False
+    q = POU.output(False)
+    def __init__(self,q:bool=False,id:str = None,parent:POU = None):
+        super().__init__(id=id,parent=parent)
+        self.q = q
 
-    @sfcaction
     def main(self):
         while True:
             self.q = False
             yield True
-            for i in self.pause(2000):
-                yield i
+            yield from self.pause(2000)
             self.q = True
             yield True
             
