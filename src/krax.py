@@ -77,7 +77,7 @@ accel_2.link(filler_2)
 
 transport_1 = Transport(power = plc.FLOW_DIR, ison = plc.FLOW_DIR_IN, out = plc.CONVEYOR_ON_1 )
 
-fillers_1 = Dosator(m=lambda: fillers_m_1.m, containers=[filler_1, filler_2], lock=Lock(key=lambda: not (hw.FILLER_CLOSED_1 and hw.FILLER_CLOSED_2 and hw.FILLER_CLOSED_3 and hw.FILLER_CLOSED_4) or not hw.ELEVATOR_BELOW_1),
+fillers_1 = Dosator(m=lambda: fillers_m_1.m, containers=[filler_1, filler_2], lock=Lock(key=lambda: not (hw.FILLER_CLOSED_1 and hw.FILLER_CLOSED_2 and hw.FILLER_CLOSED_3 and hw.FILLER_CLOSED_4) or not hw.FLOW_DIR_IN),
                     out=transport_1.set_auto, closed=~plc.CONVEYOR_ISON_1)
 
 
@@ -108,7 +108,7 @@ factory_1.on_emergency = [x.emergency for x in [manager_1,silage_1, dcement_1, w
 instances = [heartbeat_1, factory_1, gate_1, motor_1, mixer_1, silage_1, dcement_1, water_1, dwater_1, addition_1,addition_2,addition_3,dadditions_1, filler_1, accel_1, filler_2, accel_2,
              fillers_1, vibrator_1, vibrator_2, cement_m_1, water_m_1, additions_m_1, fillers_m_1, manager_1,ready_1,loaded_1,df_vibrator_1,transport_1,wpump_1]  # here should be listed user defined programs
 
-if sys.platform!='esp32' or True:
+if sys.platform!='esp32':
     igate_1 = iGATE(open=plc.MIXER_OPEN_1, close=~plc.MIXER_OPEN_1,
                     opened=plc.MIXER_OPENED_1, closed=plc.MIXER_CLOSED_1)
     iwater_1 = iVALVE(open=plc.WATER_OPEN_1, closed=plc.WATER_CLOSED_1)

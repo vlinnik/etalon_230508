@@ -3,3 +3,4 @@ persist.dat
 persist.json
 *.mpy
 ._*
+backup
