@@ -19,9 +19,9 @@ except Exception as e:
 gc.collect()
 progress('cleanup/reload complete')
 
-from pyplc.config import plc, plc as hw, board
+from pyplc.config import plc, plc as hw
 from concrete import Dosator, Container, Weight, MSGate, Motor, Mixer, Transport, Factory, Readiness, Loaded, Lock, Accelerator, Manager
-from concrete.elevator import ElevatorGeneric as Elevator
+# from concrete.elevator import ElevatorGeneric as Elevator
 from concrete.vibrator import Vibrator,UnloadHelper
 from heartbeat import HeartBeat
 from concrete.imitation import *
@@ -81,36 +81,34 @@ fillers_1 = Dosator(m=lambda: fillers_m_1.m, containers=[filler_1, filler_2], lo
                     out=transport_1.set_auto, closed=~plc.CONVEYOR_ISON_1)
 
 
-elevator_1 = Elevator( above = plc.ELEVATOR_ABOVE_1, below = plc.ELEVATOR_BELOW_1, up = plc.ELEVATOR_UP_1, down = plc.ELEVATOR_DOWN_1, 
-                      containers = [filler_1,filler_2],dosator=fillers_1)
-elevator_1.join('loaded',lambda: fillers_1.unloaded)
+# elevator_1 = Elevator( above = plc.ELEVATOR_ABOVE_1, below = plc.ELEVATOR_BELOW_1, up = plc.ELEVATOR_UP_1, down = plc.ELEVATOR_DOWN_1, 
+#                       containers = [filler_1,filler_2],dosator=fillers_1)
+# elevator_1.join('loaded',lambda: fillers_1.unloaded)
 
 vibrator_1 = Vibrator(q=plc.VIBRATOR_ON_1, containers=[ filler_1], weight=fillers_m_1)
 vibrator_2 = Vibrator(q=plc.VIBRATOR_ON_2, containers=[ filler_2], weight=fillers_m_1)
 df_vibrator_1 = UnloadHelper(q = plc.DF_VIBRATOR_ON_1,dosator = fillers_1, weight = fillers_m_1)
 
 # смеситель с 1 затвором
-gate_1 = MSGate(closed=plc.MIXER_CLOSED_1, open=plc.MIXER_OPEN_1,
-                opened=plc.MIXER_OPENED_1)
-motor_1 = Motor(powered=plc.MIXER_ON_1,
-                ison=plc.MIXER_ISON_1)
+gate_1 = MSGate(closed=plc.MIXER_CLOSED_1, open=plc.MIXER_OPEN_1, opened=plc.MIXER_OPENED_1)
+motor_1 = Motor(powered=plc.MIXER_ON_1,ison=plc.MIXER_ISON_1)
 mixer_1 = Mixer(motor=motor_1, gate=gate_1,  flows=[s.q for s in [
-    silage_1, water_1, addition_1] + elevator_1.expenses +  [addition_2,addition_3]])
+    silage_1, water_1, addition_1] + [filler_1,filler_2] + [addition_2,addition_3]])
 
-ready_1 = Readiness([mixer_1, dcement_1, dwater_1, dadditions_1,elevator_1])
-loaded_1 = Loaded([dcement_1, dwater_1, dadditions_1, elevator_1])
+ready_1 = Readiness([mixer_1, dcement_1, dwater_1, dadditions_1,fillers_1])
+loaded_1 = Loaded([dcement_1, dwater_1, dadditions_1, fillers_1])
 manager_1 = Manager(collected=ready_1, loaded=loaded_1, mixer=mixer_1, dosators=[
-                    dcement_1, dwater_1, dadditions_1, fillers_1, elevator_1])
+                    dcement_1, dwater_1, dadditions_1, fillers_1])
 
 factory_1.on_mode = [x.switch_mode for x in [silage_1, dcement_1,
                                              water_1, addition_1, addition_2,addition_3, filler_1, filler_2, dwater_1, dadditions_1,fillers_1]]
 factory_1.on_emergency = [x.emergency for x in [manager_1,silage_1, dcement_1, water_1,
-                                                dwater_1, addition_1,addition_2,addition_3,dadditions_1, filler_1, filler_2, fillers_1, mixer_1, gate_1,elevator_1]]
+                                                dwater_1, addition_1,addition_2,addition_3,dadditions_1, filler_1, filler_2, fillers_1, mixer_1, gate_1]]
 
 instances = [heartbeat_1, factory_1, gate_1, motor_1, mixer_1, silage_1, dcement_1, water_1, dwater_1, addition_1,addition_2,addition_3,dadditions_1, filler_1, accel_1, filler_2, accel_2,
-             fillers_1, vibrator_1, vibrator_2, elevator_1, cement_m_1, water_m_1, additions_m_1, fillers_m_1, manager_1,ready_1,loaded_1,df_vibrator_1,transport_1,wpump_1]  # here should be listed user defined programs
+             fillers_1, vibrator_1, vibrator_2, cement_m_1, water_m_1, additions_m_1, fillers_m_1, manager_1,ready_1,loaded_1,df_vibrator_1,transport_1,wpump_1]  # here should be listed user defined programs
 
-if sys.platform!='esp32':
+if sys.platform!='esp32' or True:
     igate_1 = iGATE(open=plc.MIXER_OPEN_1, close=~plc.MIXER_OPEN_1,
                     opened=plc.MIXER_OPENED_1, closed=plc.MIXER_CLOSED_1)
     iwater_1 = iVALVE(open=plc.WATER_OPEN_1, closed=plc.WATER_CLOSED_1)

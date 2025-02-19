@@ -3,10 +3,15 @@
     "root": "src"
   },
   "tools": {
-    "upydev": "",
+    "upydev": "/home/vlinnik/.local/bin/upydev",
     "miniterm": "",
-    "web_repl": ""
+    "web_repl": "",
+    "paths": "/home/vlinnik/.local/lib/python3.12/site-packages/../Scripts/",
+    "enumSerials": "/usr/bin/pyserial-ports",
+    "serial": "/home/vlinnik/.local/bin/mpremote",
+    "telnet": "/usr/bin/telnet"
   },
-  "target": "/dev/ttyUSB0        ",
+  "project": "PYPLC-230713",
+  "target": "/dev/ttyUSB0",
   "is_serial": true
 }
