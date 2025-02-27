@@ -12,6 +12,6 @@
     "telnet": "/usr/bin/telnet"
   },
   "project": "PYPLC-230713",
-  "target": "192.168.4.1",
-  "is_serial": false
+  "target": "/dev/ttyUSB0",
+  "is_serial": true
 }

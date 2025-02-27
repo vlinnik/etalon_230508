@@ -23,6 +23,7 @@ from pyplc.config import plc, plc as hw
 from concrete import Dosator, Container, Weight, MSGate, Motor, Mixer, Transport, Factory, Readiness, Loaded, Lock, Accelerator, Manager
 # from concrete.elevator import ElevatorGeneric as Elevator
 from concrete.vibrator import Vibrator,UnloadHelper
+from pyplc.utils.misc import BLINK
 from heartbeat import HeartBeat
 from concrete.imitation import *
 progress('CONCRETE loaded')
@@ -40,6 +41,7 @@ silage_1 = Container(m=lambda: cement_m_1.m, out=plc.AUGER_ON_1, closed=~
                      plc.AUGER_ON_1, lock=Lock(key=~plc.DCEMENT_CLOSED_1), max_sp = 500)
 dcement_1 = Dosator(m=lambda: cement_m_1.m, closed=plc.DCEMENT_CLOSED_1, out=plc.DCEMENT_OPEN_1,
                     containers=[silage_1],  lock=Lock(key=lambda: hw.AUGER_ON_1 or not hw.MIXER_ISON_1), unloadT=3)
+dc_vibrator_1 = UnloadHelper(q = plc.S_VIBRATOR_ON_1,dosator = dcement_1, weight = cement_m_1)
 
 # дозатор воды
 water_m_1 = Weight(mmax=500, raw=plc.WATER_M_1)
@@ -68,16 +70,16 @@ accel_1 = Accelerator(outs=[plc.FILLER_OPEN_1, plc.FILLER_OPEN_2], sts=[
 accel_2 = Accelerator(outs=[plc.FILLER_OPEN_3, plc.FILLER_OPEN_4], sts=[
                       plc.FILLER_CLOSED_3, plc.FILLER_CLOSED_4])
 filler_1 = Container(m=lambda: fillers_m_1.m, lock=Lock(key=lambda: hw.CONVEYOR_ISON_1 or not accel_2.closed),
-                     closed=lambda: accel_1.closed, max_sp = 1000)
+                     closed=lambda: accel_1.closed, max_sp = 3000)
 accel_1.link(filler_1)
 
 filler_2 = Container(m=lambda: fillers_m_1.m, lock=Lock(key=lambda: hw.CONVEYOR_ISON_1 or not accel_1.closed),
-                     closed=lambda: accel_2.closed, max_sp = 1000)
+                     closed=lambda: accel_2.closed, max_sp = 3000)
 accel_2.link(filler_2)
 
 transport_1 = Transport(power = plc.FLOW_DIR, ison = plc.FLOW_DIR_IN, out = plc.CONVEYOR_ON_1 )
 
-fillers_1 = Dosator(m=lambda: fillers_m_1.m, containers=[filler_1, filler_2], lock=Lock(key=lambda: not (hw.FILLER_CLOSED_1 and hw.FILLER_CLOSED_2 and hw.FILLER_CLOSED_3 and hw.FILLER_CLOSED_4) or not hw.FLOW_DIR_IN),
+fillers_1 = Dosator(m=lambda: fillers_m_1.m, containers=[filler_1, filler_2], lock=Lock(key=lambda: not (hw.FILLER_CLOSED_1 and hw.FILLER_CLOSED_2 and hw.FILLER_CLOSED_3 and hw.FILLER_CLOSED_4)),
                     out=transport_1.set_auto, closed=~plc.CONVEYOR_ISON_1)
 
 
@@ -85,9 +87,10 @@ fillers_1 = Dosator(m=lambda: fillers_m_1.m, containers=[filler_1, filler_2], lo
 #                       containers = [filler_1,filler_2],dosator=fillers_1)
 # elevator_1.join('loaded',lambda: fillers_1.unloaded)
 
-vibrator_1 = Vibrator(q=plc.VIBRATOR_ON_1, containers=[ filler_1], weight=fillers_m_1)
-vibrator_2 = Vibrator(q=plc.VIBRATOR_ON_2, containers=[ filler_2], weight=fillers_m_1)
+vibrator_1 = Vibrator(q=plc.VIBRATOR_ON_1, containers=[ plc.FILLER_OPEN_1,plc.FILLER_OPEN_2 ], weight=fillers_m_1)
+vibrator_2 = Vibrator(q=plc.VIBRATOR_ON_2, containers=[ plc.FILLER_OPEN_3,plc.FILLER_OPEN_4 ], weight=fillers_m_1)
 df_vibrator_1 = UnloadHelper(q = plc.DF_VIBRATOR_ON_1,dosator = fillers_1, weight = fillers_m_1)
+# df_vibrator_1 = BLINK( enable = plc.CONVEYOR_ON_1, q = plc.DF_VIBRATOR_ON_1, t_off = 3000)
 
 # смеситель с 1 затвором
 gate_1 = MSGate(closed=plc.MIXER_CLOSED_1, open=plc.MIXER_OPEN_1, opened=plc.MIXER_OPENED_1)
@@ -106,7 +109,7 @@ factory_1.on_emergency = [x.emergency for x in [manager_1,silage_1, dcement_1, w
                                                 dwater_1, addition_1,addition_2,addition_3,dadditions_1, filler_1, filler_2, fillers_1, mixer_1, gate_1]]
 
 instances = [heartbeat_1, factory_1, gate_1, motor_1, mixer_1, silage_1, dcement_1, water_1, dwater_1, addition_1,addition_2,addition_3,dadditions_1, filler_1, accel_1, filler_2, accel_2,
-             fillers_1, vibrator_1, vibrator_2, cement_m_1, water_m_1, additions_m_1, fillers_m_1, manager_1,ready_1,loaded_1,df_vibrator_1,transport_1,wpump_1]  # here should be listed user defined programs
+             fillers_1, vibrator_1, vibrator_2, cement_m_1, water_m_1, additions_m_1, fillers_m_1, manager_1,ready_1,loaded_1,df_vibrator_1,transport_1,wpump_1,dc_vibrator_1]  # here should be listed user defined programs
 
 if sys.platform!='esp32':
     igate_1 = iGATE(open=plc.MIXER_OPEN_1, close=~plc.MIXER_OPEN_1,
@@ -145,8 +148,8 @@ if sys.platform!='esp32':
     imitations = [igate_1, iwater_1, idcement_1, idwater_1, idadditions_1, ifiller_1, iauger_1, iapump_1, iapump_2, iapump_3,
                 ifiller_2, ifiller_3, ifiller_4, icement_m_1, iwater_m_1, iadditions_m_1, ifillers_m_1, imotor_1, iconveyor_1,ielevator_1,itransport_1,iwpump_1]
     instances+=imitations
-
-plc.config(ctx=globals())
+# вызывается из run. дважды приводит к проблемам с backup/restore при изменениях  
+# plc.config(ctx=globals())
 
 print('Startup time is',(time.time_ns() - enter_ts)/1000000)
 
